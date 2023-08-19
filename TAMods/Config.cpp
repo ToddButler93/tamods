@@ -2333,6 +2333,7 @@ void Lua::init()
 
         // Custom HUD drawing functions
         addFunction("drawText",                &Utils::drawText).
+        addFunction("drawCustomText", &Utils::drawCustomText).
         addFunction("drawSmallText",        &Utils::drawSmallText).
         addFunction("drawUTText",            &Utils::drawUTText).
         addFunction("drawUTTextScaled",        &Utils::drawUTTextScaled).
@@ -2344,6 +2345,12 @@ void Lua::init()
         addFunction("drawBox",                &Utils::drawBox).
         addFunction("drawProgressBar",        &Utils::drawProgressBar).
         addFunction("draw2dLine",            &Utils::draw2dLine).
+        addFunction("drawLine", &Utils::drawLine).
+        addFunction("drawTriangle", &Utils::drawTriangle).
+        addFunction("drawSector", &Utils::drawSector).
+        addFunction("drawCircle", &Utils::drawCircle).
+        addFunction("drawRectTextured", &Utils::drawRectTextured).
+        addFunction("drawLineTextured", &Utils::drawLineTextured).
 
         // Custom HUD getter functions
         beginNamespace("viewPort").

@@ -297,6 +297,7 @@ void Utils::drawTextMain(const std::string &str, const FColor &col, float x, flo
     case 1: canvas.Font = mainFont; break;
     case 2: canvas.Font = consoleFont; break;
     case 3: canvas.Font = ut_hud->GetFontSizeIndex(size); break;
+    case 4: canvas.Font = UObject::FindObject<UFont>("Font EngineFonts.TinyFont"); break;
     default: canvas.Font = mainFont;
     }
 
@@ -322,6 +323,52 @@ void Utils::drawTextMain(const std::string &str, const FColor &col, float x, flo
     canvas.DrawColor = col;
     canvas.SetPos(x, y, 0.0f);
     canvas.DrawTextW(wch, true, scale, scale, &tr_hud->m_nNameFontRenderInfo);
+}
+
+void Utils::drawTextMain(const std::string& str, const FColor& col, float x, float y, const unsigned char& align, const int& shadowSize, const float& scale, const unsigned& size, const char* fontName)
+{
+    if (!(tr_hud && tr_hud->Canvas))
+        return;
+
+    std::string text = str;
+    cryptor.fromId(text);
+
+    UCanvas& canvas = *tr_hud->Canvas;
+    float xl, yl;
+
+    std::wstring wstr = std::wstring(text.begin(), text.end());
+    wchar_t* wch = (wchar_t*)wstr.c_str();
+
+    // Use the provided fontName
+    canvas.Font = UObject::FindObject<UFont>(fontName);
+
+    canvas.StrLen(wch, &xl, &yl);
+
+    xl *= scale;
+    yl *= scale;
+
+    // 0=left 1=center 2=right
+    if (align == 1)
+        x -= xl / 2;
+    else if (align == 2)
+        x -= xl;
+
+    y -= yl / 2;
+
+    if (shadowSize != 0)
+    {
+        canvas.DrawColor = { 0, 0, 0, 255 };
+        canvas.SetPos(x + shadowSize, y + shadowSize, 0.0f);
+        canvas.DrawTextW(wch, true, scale, scale, &tr_hud->m_nNameFontRenderInfo);
+    }
+    canvas.DrawColor = col;
+    canvas.SetPos(x, y, 0.0f);
+    canvas.DrawTextW(wch, true, scale, scale, &tr_hud->m_nNameFontRenderInfo);
+}
+
+void Utils::drawCustomText(const std::string& str, const FColor& col, float x, float y, const unsigned char& align, const int& shadowSize, const float& scale, const char* fontName)
+{
+    drawTextMain(str, col, x, y, align, shadowSize, scale, 0, fontName);
 }
 
 void Utils::drawText(const std::string &str, const FColor &col, float x, float y, const unsigned char &align, const float &scale)
@@ -453,6 +500,179 @@ void Utils::draw2dLine(const float &x1, const float &y1, const float &x2, const 
         return;
 
     tr_hud->Canvas->Draw2DLine(x1, y1, x2, y2, col);
+}
+
+void Utils::drawRectTextured(const float& x1, const float& y1, const float& x2, const float& y2, const FColor& col, const char* texName)
+{
+    if (!(tr_hud && tr_hud->Canvas))
+        return;
+
+    UTexture2D* texture = UObject::FindObject<UTexture2D>(texName);
+
+    if (!texture)
+        texture = whiteTexture;
+
+    UCanvas& canvas = *tr_hud->Canvas;
+    canvas.SetDrawColorStruct(col);
+    canvas.SetPos(x1, y1, 0.0f);
+    canvas.DrawRect(x2 - x1, y2 - y1, texture);
+}
+
+void Utils::drawLine(const float& x1, const float& y1, const float& x2, const float& y2, const float& perc, const float& width, const FColor& col)
+{
+    if (!(tr_hud && tr_hud->Canvas))
+        return;
+
+    FVector start(x1, y1, 0.0f);
+
+    // Compute the line direction (end - start)
+    float directionX = x2 - x1;
+    float directionY = y2 - y1;
+
+    // Scale the direction by the percentage to get the line segment
+    float lineSegmentX = directionX * perc;
+    float lineSegmentY = directionY * perc;
+
+    // Compute the end position
+    FVector end(x1 + lineSegmentX, y1 + lineSegmentY, 0.0f);
+
+    tr_hud->Canvas->DrawTextureLine(start, end, 1.0f, width, col, whiteTexture, 0.0f, 0.0f, 1.0f, 1.0f);
+}
+
+void Utils::drawLineTextured(const float& x1, const float& y1, const float& x2, const float& y2, const FVector4& uvMapping, const float& width, const FColor& col, const char* texName)
+{
+    if (!(tr_hud && tr_hud->Canvas))
+        return;
+
+    UTexture2D* texture = UObject::FindObject<UTexture2D>(texName);
+
+    if (!texture)
+        texture = whiteTexture;
+
+    FVector start(x1, y1, 0.0f);
+
+    // Compute the line direction (end - start)
+    float directionX = x2 - x1;
+    float directionY = y2 - y1;
+
+    float lineSegmentX = directionX;
+    float lineSegmentY = directionY;
+
+    // Compute the end position
+    FVector end(x1 + lineSegmentX, y1 + lineSegmentY, 0.0f);
+
+    tr_hud->Canvas->DrawTextureLine(start, end, 1.0f, width, col, texture, uvMapping.X, uvMapping.Y, uvMapping.Z, uvMapping.W);
+}
+
+
+void Utils::drawSector(float x, float y, float radius, float startAngle, float endAngle, int segements, const char* texName) {
+    const float PI = 3.14159265f;
+
+    if (!(tr_hud && tr_hud->Canvas))
+        return;
+
+    UTexture2D* texture = UObject::FindObject<UTexture2D>(texName);
+
+    if (!texture)
+        return;
+
+    int numSegments = segements;
+    float angleStep = (endAngle - startAngle) / numSegments;
+
+    TArray<FCanvasUVTri> triangles;
+
+    for (int i = 0; i < numSegments; ++i) {
+        float angle = startAngle + (i * angleStep);
+        float nextAngle = startAngle + ((i + 1) * angleStep);
+        float posX = x + radius * std::cos(angle * PI / 180.0);
+        float posY = y + radius * std::sin(angle * PI / 180.0);
+        float nextPosX = x + radius * std::cos(nextAngle * PI / 180.0);
+        float nextPosY = y + radius * std::sin(nextAngle * PI / 180.0);
+
+        FCanvasUVTri triangle;
+
+        triangle.V0_Pos = FVector2D{ x, y };
+        triangle.V1_Pos = FVector2D{ posX, posY };
+        triangle.V2_Pos = FVector2D{ nextPosX, nextPosY };
+
+        // Hardcode UVs
+        triangle.V0_UV = FVector2D{ 0.0f, 0.0f };
+        triangle.V1_UV = FVector2D{ 1.0f, 0.0f };
+        triangle.V2_UV = FVector2D{ 0.5f, 1.0f };
+
+        triangles.Add(triangle);
+    }
+
+    tr_hud->Canvas->DrawTris(texture, triangles);
+}
+
+
+void Utils::drawTriangle(float x1, float y1, float x2, float y2, float x3, float y3, const char* texName)
+{
+    if (!(tr_hud && tr_hud->Canvas))
+        return;
+
+    UTexture2D* texture = UObject::FindObject<UTexture2D>(texName);
+
+
+    if (!texture)
+        texture = whiteTexture;
+
+    FCanvasUVTri triangle;
+
+    // Assign positions
+    triangle.V0_Pos = FVector2D{ x1, y1 };
+    triangle.V1_Pos = FVector2D{ x2, y2 };
+    triangle.V2_Pos = FVector2D{ x3, y3 };
+
+    // Hardcode UVs
+    triangle.V0_UV = FVector2D{ 0.0f, 0.0f };
+    triangle.V1_UV = FVector2D{ 1.0f, 0.0f };
+    triangle.V2_UV = FVector2D{ 0.5f, 1.0f };
+
+    TArray<FCanvasUVTri> triangles;
+    triangles.Add(triangle);
+
+    tr_hud->Canvas->DrawTris(texture, triangles);
+}
+
+void Utils::drawCircle(float centerX, float centerY, float radius, const char* texName)
+{
+    if (!(tr_hud && tr_hud->Canvas))
+        return;
+
+    UTexture2D* texture = UObject::FindObject<UTexture2D>(texName);
+
+    if (!texture)
+        texture = whiteTexture;
+
+    const float PI = 3.14159;
+    const int numSides = 30;  
+    const float angleStep = 2.0f * PI / numSides;
+
+    TArray<FCanvasUVTri> triangles;
+
+    for (int i = 0; i < numSides; ++i)
+    {
+        FCanvasUVTri triangle;
+
+        float curAngle = i * angleStep;
+        float nextAngle = (i + 1) * angleStep;
+        float curX = centerX + radius * cosf(curAngle);
+        float curY = centerY + radius * sinf(curAngle);
+        float nextX = centerX + radius * cosf(nextAngle);
+        float nextY = centerY + radius * sinf(nextAngle);
+
+        triangle.V0_Pos = FVector2D{ centerX, centerY };
+        triangle.V1_Pos = FVector2D{ curX, curY };
+        triangle.V2_Pos = FVector2D{ nextX, nextY };
+        triangle.V0_UV = FVector2D{ 0.5f, 0.5f };
+        triangle.V1_UV = FVector2D{ 0.5f + 0.5f * cosf(curAngle), 0.5f + 0.5f * sinf(curAngle) };
+        triangle.V2_UV = FVector2D{ 0.5f + 0.5f * cosf(nextAngle), 0.5f + 0.5f * sinf(nextAngle) };
+
+        triangles.Add(triangle);
+    }
+    tr_hud->Canvas->DrawTris(texture, triangles);
 }
 
 ATrDevice* Utils::getDeviceByEquipPointHelper(unsigned const char &n)
