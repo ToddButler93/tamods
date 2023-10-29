@@ -52,6 +52,8 @@ namespace Utils
 
     // Canvas drawing
     void drawTextMain(const std::string &str, const FColor &col, float x, float y, const unsigned char &align, const int &shadowSize, const float &scale, const unsigned &size, const unsigned char &fontNum);
+    void drawTextMain(const std::string& str, const FColor& col, float x, float y, const unsigned char& align, const int& shadowSize, const float& scale, const unsigned& size, const char* fontName);
+    void drawCustomText(const std::string& str, const FColor& col, float x, float y, const unsigned char& align, const int& shadowSize, const float& scale, const char* fontName);
     void drawText(const std::string &str, const FColor &col, float x, float y, const unsigned char &align, const float &scale);
     void drawSmallText(const std::string &str, const FColor &col, float x, float y, const unsigned char &align, const int &shadowSize, const float &scale);
     void drawUTText(const std::string &str, const FColor &col, float x, float y, const unsigned char &align, const int &shadowSize, const unsigned &size);
@@ -65,6 +67,12 @@ namespace Utils
     void drawBox(const float &x1, const float &y1, const float &x2, const float &y2, const FColor &col);
     void drawProgressBar(float x1, float y1, float x2, float y2, const FColor &col, const unsigned char &dir, const float &alpha);
     void draw2dLine(const float &x1, const float &y1, const float &x2, const float &y2, const FColor &col);
+    void drawLine(const float& x1, const float& y1, const float& x2, const float& y2, const float& perc, const float& width, const FColor& col);
+    void drawTriangle(float x1, float y1, float x2, float y2, float x3, float y3, const char* texName);
+    void drawSector(float x, float y, float radius, float startAngle, float endAngle, int segements, const char* texName);
+    void drawCircle(float centerX, float centerY, float radius, const char* texName);
+    void drawRectTextured(const float& x1, const float& y1, const float& x2, const float& y2, const FColor& col, const char* texName);
+    void drawLineTextured(const float& x1, const float& y1, const float& x2, const float& y2, const FVector4& uvMapping, const float& width, const FColor& col, const char* texName);
 
     ATrDevice* getDeviceByEquipPointHelper(unsigned const char &n);
     ATrDevice* getDeviceByWeaponIDHelper(int weapon_id);
