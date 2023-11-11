@@ -21,6 +21,13 @@ static FVector g_clientSideFireStartLoc;
 static FVector g_physicalFireStartLoc;
 static UClass *g_projClass = NULL;
 
+// Disapearing bullet fix - EmitterPool
+void UDKEmitterPool_SpawnEmitter(AUDKEmitterPool* that, AEmitterPool_execSpawnEmitter_Parms* params) {
+    that->MaxActiveEffects = 4000;
+    that->SpawnEmitter(params->EmitterTemplate, params->SpawnLocation, params->SpawnRotation, params->AttachToActor, params->bInheritScaleFromBase);
+    return;
+}
+
 // Register projectiles that we should be firing soon
 bool TrDevice_WeaponFire(int ID, UObject *dwCallingObject, UFunction *pFunction, void *pParams, void *result)
 {

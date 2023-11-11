@@ -64,6 +64,10 @@ void TrDevice_Shotgun_AddSpreadWithAccuracy(ATrDevice_Shotgun* that, ATrDevice_S
 void CustomWeaponsTick(ATrDevice* currentDevice);
 void CustomWeaponsOnPlayerDeath(ATrPlayerController* pc);
 bool TrStationCollision_Touch(int ID, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
+
+// Disapearing bullet fix - EmitterPool
+void UDKEmitterPool_SpawnEmitter(AUDKEmitterPool* that, AEmitterPool_execSpawnEmitter_Parms* params);
+
 struct WeaponPositioningDetails {
     unsigned long IsHidden;
     unsigned char CurrentHand;
