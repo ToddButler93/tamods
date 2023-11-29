@@ -66,7 +66,7 @@ void CustomWeaponsOnPlayerDeath(ATrPlayerController* pc);
 bool TrStationCollision_Touch(int ID, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
 
 // Disapearing bullet fix - EmitterPool
-void UDKEmitterPool_SpawnEmitter(AUDKEmitterPool* that, AEmitterPool_execSpawnEmitter_Parms* params);
+void UDKEmitterPool_SpawnEmitter(AUDKEmitterPool* that, AEmitterPool_execSpawnEmitter_Parms* params, UParticleSystemComponent** result, Hooks::CallInfo* callInfo);
 
 struct WeaponPositioningDetails {
     unsigned long IsHidden;
