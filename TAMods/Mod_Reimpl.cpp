@@ -73,37 +73,40 @@ void TrDevice_FireAmmunition(ATrDevice* that, ATrDevice_execFireAmmunition_Parms
                 RealStartLoc = that->GetClientSideProjectileFireStartLoc(FVector());
                 SpawnRotation = that->GetAdjustedAim(RealStartLoc);
                 SpawnedProjectile = (ATrProjectile*)that->Spawn(ProjectileClass, that->Instigator, that->Name, RealStartLoc, FRotator(), NULL, 0);
-                float speed_backup = SpawnedProjectile->Speed;
-                float maxspeed_backup = SpawnedProjectile->MaxSpeed;
-                FVector acceleration_backup = SpawnedProjectile->Acceleration;
-                FVector velocity_backup = Geom::mult(Geom::rotationToVector(SpawnRotation), SpawnedProjectile->Speed);
-                velocity_backup.Z += SpawnedProjectile->TossZ;
-                float accelrate_backup = SpawnedProjectile->AccelRate;
-                float lifespan_backup = SpawnedProjectile->LifeSpan;
+                if (SpawnedProjectile)
+                {
+                    float speed_backup = SpawnedProjectile->Speed;
+                    float maxspeed_backup = SpawnedProjectile->MaxSpeed;
+                    FVector acceleration_backup = SpawnedProjectile->Acceleration;
+                    FVector velocity_backup = Geom::mult(Geom::rotationToVector(SpawnRotation), SpawnedProjectile->Speed);
+                    velocity_backup.Z += SpawnedProjectile->TossZ;
+                    float accelrate_backup = SpawnedProjectile->AccelRate;
+                    float lifespan_backup = SpawnedProjectile->LifeSpan;
 
-                SpawnedProjectile->InitProjectile(Geom::rotationToVector(SpawnRotation), ProjectileClass);
+                    SpawnedProjectile->InitProjectile(Geom::rotationToVector(SpawnRotation), ProjectileClass);
 
-                SpawnedProjectile->Speed = speed_backup;
-                SpawnedProjectile->MaxSpeed = maxspeed_backup;
-                SpawnedProjectile->Acceleration = acceleration_backup;
-                SpawnedProjectile->Velocity = velocity_backup;
-                SpawnedProjectile->Instigator = pawn;
-                SpawnedProjectile->LifeSpan = lifespan_backup;
-                SpawnedProjectile->ApplyInheritance(Geom::rotationToVector(SpawnRotation));
+                    SpawnedProjectile->Speed = speed_backup;
+                    SpawnedProjectile->MaxSpeed = maxspeed_backup;
+                    SpawnedProjectile->Acceleration = acceleration_backup;
+                    SpawnedProjectile->Velocity = velocity_backup;
+                    SpawnedProjectile->Instigator = pawn;
+                    SpawnedProjectile->LifeSpan = lifespan_backup;
+                    SpawnedProjectile->ApplyInheritance(Geom::rotationToVector(SpawnRotation));
 
-                ZeroPingNonChainProjectile zero_ping_non_chain_projectile;
-                zero_ping_non_chain_projectile.fire_location = RealStartLoc;
-                zero_ping_non_chain_projectile.projectile_class = ProjectileClass;
-                zero_ping_non_chain_projectile.client_location = RealStartLoc;
-                zero_ping_non_chain_projectile.physical_location = that->GetPhysicalFireStartLoc(FVector());
-                zero_ping_non_chain_projectile.spawned_projectile = SpawnedProjectile;
+                    ZeroPingNonChainProjectile zero_ping_non_chain_projectile;
+                    zero_ping_non_chain_projectile.fire_location = RealStartLoc;
+                    zero_ping_non_chain_projectile.projectile_class = ProjectileClass;
+                    zero_ping_non_chain_projectile.client_location = RealStartLoc;
+                    zero_ping_non_chain_projectile.physical_location = that->GetPhysicalFireStartLoc(FVector());
+                    zero_ping_non_chain_projectile.spawned_projectile = SpawnedProjectile;
 
-                zero_ping_non_chain_projectiles.push_back(zero_ping_non_chain_projectile);
-                spawned_projectiles_set.insert(SpawnedProjectile);
+                    zero_ping_non_chain_projectiles.push_back(zero_ping_non_chain_projectile);
+                    spawned_projectiles_set.insert(SpawnedProjectile);
 
-                auto it = g_config.proj_class_to_custom_proj.find((int)ProjectileClass);
-                if (it != g_config.proj_class_to_custom_proj.end() && it->second && it->second->custom_ps)
-                    SpawnedProjectile->ProjFlightTemplate = it->second->custom_ps;
+                    auto it = g_config.proj_class_to_custom_proj.find((int)ProjectileClass);
+                    if (it != g_config.proj_class_to_custom_proj.end() && it->second && it->second->custom_ps)
+                        SpawnedProjectile->ProjFlightTemplate = it->second->custom_ps;
+                }
             }
         }
     }
