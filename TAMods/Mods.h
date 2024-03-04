@@ -10,6 +10,7 @@
 #include "Logger.h"
 #include "stats.h"
 #include "Texture.h"
+#include "LagCompensation.h"
 
 extern Config g_config;
 extern Stats g_stats;
@@ -141,7 +142,9 @@ void MC_KillProjectiles();
 // Custom projectiles
 bool TrDevice_WeaponFire(int ID, UObject *dwCallingObject, UFunction *pFunction, void *pParams, void *result);
 void TrProjectile_PreBeginPlay_UScript(ATrProjectile *that, ATrProjectile_eventPreBeginPlay_Parms *params, void *result, Hooks::CallInfo *callInfo);
-bool TrProjectile_PreBeginPlay(int ID, UObject *dwCallingObject, UFunction *pFunction, void *pParams, void *result);
+bool TrProjectile_PreBeginPlay(int ID, UObject* dwCallingObject, UFunction* pFunction, void* pParams, void* result);
+void TrProjectile_SpawnExplosionEffects(ATrProjectile* that, ATrProjectile_execSpawnExplosionEffects_Parms* params, void* result, Hooks::CallInfo* callInfo);
+bool TrPlayerController_StartFire(int ID, UObject* dwCallingObject, UFunction* pFunction, void* pParams, void* result);
 
 // Console commands, autocompletion and drawing
 bool TrChatConsole_Open_InputKey(int id, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);

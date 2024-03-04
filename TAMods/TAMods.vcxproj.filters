@@ -746,6 +746,9 @@
     <ClInclude Include="MemoisedCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LagCompensation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="TAServerControlTypes.h">

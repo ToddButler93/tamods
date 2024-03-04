@@ -1,4 +1,5 @@
 #include "Mods.h"
+#include <unordered_set>
 
 struct DelayedProjectile
 {
@@ -15,6 +16,10 @@ struct DelayedProjectile
 };
 
 static std::list<DelayedProjectile> delayed_projs;
+
+std::list<ZeroPingNonChainProjectile> zero_ping_non_chain_projectiles;
+std::unordered_set<ATrProjectile*> spawned_projectiles_set;
+std::unordered_map<ATrProjectile*, ATrProjectile*> real_projectile_to_spawned_projectile;
 
 // Projectiles owner guessing
 static FVector g_clientSideFireStartLoc;
@@ -55,22 +60,56 @@ bool TrDevice_WeaponFire(int ID, UObject *dwCallingObject, UFunction *pFunction,
 // Catches UScript -> UScript calls, for projectiles that inherit TrProjectile and override PreBeginPlay then call super()
 void TrProjectile_PreBeginPlay_UScript(ATrProjectile *that, ATrProjectile_eventPreBeginPlay_Parms *params, void *result, Hooks::CallInfo *callInfo)
 {
-    if (g_projClass && that->IsA(g_projClass))
+    if (spawned_projectiles_set.find(that) != spawned_projectiles_set.end()) // Zero ping spawned projectile
     {
-        float physDiff = Geom::vSize(Geom::sub(that->Location, g_physicalFireStartLoc));
-        float clientDiff = Geom::vSize(Geom::sub(that->Location, g_clientSideFireStartLoc));
-
-        // Seems to work enough
-        // Tested @15 - 100 ping
-        //        @30 - 150+ fps
-        if (physDiff < 1000 || clientDiff < 1000)
+        auto it = g_config.proj_class_to_custom_proj.find((int)that->Class);
+        if (it != g_config.proj_class_to_custom_proj.end() && it->second && it->second->custom_ps)
+            that->ProjFlightTemplate = it->second->custom_ps;
+    }
+    else // Real projectile
+    {
+        if (g_projClass && that->IsA(g_projClass))
         {
-            auto it = g_config.proj_class_to_custom_proj.find((int)that->Class);
-            if (it != g_config.proj_class_to_custom_proj.end() && it->second && it->second->custom_ps)
-                that->ProjFlightTemplate = it->second->custom_ps;
-            g_projClass = NULL;
+            float physDiff = Geom::vSize(Geom::sub(that->Location, g_physicalFireStartLoc));
+            float clientDiff = Geom::vSize(Geom::sub(that->Location, g_clientSideFireStartLoc));
+
+            // Seems to work enough
+            // Tested @15 - 100 ping
+            //        @30 - 150+ fps
+            if (physDiff < 1000 || clientDiff < 1000)
+            {
+                auto it = g_config.proj_class_to_custom_proj.find((int)that->Class);
+                if (it != g_config.proj_class_to_custom_proj.end() && it->second && it->second->custom_ps)
+                    that->ProjFlightTemplate = it->second->custom_ps;
+                g_projClass = NULL;
+            }
+
+        }
+
+        if (Utils::tr_pc->m_bAllowSimulatedProjectiles && !((ATrProjectile*)that->Class->Default)->m_bSimulateAutonomousProjectiles)
+        {
+            for (auto i = zero_ping_non_chain_projectiles.begin(); i != zero_ping_non_chain_projectiles.end(); i++)
+            {
+                float physDiff = Geom::vSize(Geom::sub(that->Location, i->physical_location));
+                float clientDiff = Geom::vSize(Geom::sub(that->Location, i->client_location));
+
+                // Seems to work enough
+                // Tested @15 - 100 ping
+                //        @30 - 150+ fps
+                if (physDiff < 1000 || clientDiff < 1000)
+                {
+                    if (that->IsA(i->projectile_class))
+                    {
+                        that->SetHidden(true);
+                        real_projectile_to_spawned_projectile[that] = i->spawned_projectile;
+                        zero_ping_non_chain_projectiles.erase(i);
+                        break;
+                    }
+                }
+            }
         }
     }
+
     if (callInfo)
         that->eventPreBeginPlay();
 }
@@ -216,6 +255,11 @@ void TrDev_ProjectileFire(ATrDevice *that, ATrDevice_execProjectileFire_Parms *p
         customProj->default_proj->ProjFlightTemplate = customProj->default_ps;
 }
 
+bool TrPlayerController_StartFire(int ID, UObject* dwCallingObject, UFunction* pFunction, void* pParams, void* result)
+{
+    return false;
+}
+
 bool TrPC_PlayerTick(int ID, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult)
 {
     if (dwCallingObject->IsA(ATrPlayerController_Training::StaticClass()))
@@ -344,4 +388,21 @@ bool TrPC_PlayerTick(int ID, UObject *dwCallingObject, UFunction* pFunction, voi
 
     Hooks::unlock();
     return false;
+}
+
+void TrProjectile_SpawnExplosionEffects(ATrProjectile* that, ATrProjectile_execSpawnExplosionEffects_Parms* params, void* result, Hooks::CallInfo* callInfo)
+{
+    if (spawned_projectiles_set.find(that) != spawned_projectiles_set.end()) {
+        spawned_projectiles_set.erase(that);
+    }
+    else if (real_projectile_to_spawned_projectile.find(that) != real_projectile_to_spawned_projectile.end()) {
+        ATrProjectile* spawned_projectile = real_projectile_to_spawned_projectile[that];
+        if (spawned_projectiles_set.find(spawned_projectile) != spawned_projectiles_set.end()) {
+            spawned_projectile->Explode(params->HitLocation, params->HitNormal);
+            spawned_projectiles_set.erase(spawned_projectile);
+        }
+        return;
+    }
+
+    that->SpawnExplosionEffects(params->HitLocation, params->HitNormal);
 }

@@ -184,6 +184,8 @@ void addClientModeHooks()
 
     Hooks::add(&TrProjectile_PreBeginPlay, "Function TribesGame.TrProjectile.PreBeginPlay");
     Hooks::addUScript(&TrProjectile_PreBeginPlay_UScript, "Function TribesGame.TrProjectile.PreBeginPlay");
+    Hooks::add(&TrPlayerController_StartFire, "Function TribesGame.TrPlayerController.StartFire");
+    Hooks::addUScript(&TrProjectile_SpawnExplosionEffects, "Function TribesGame.TrProjectile.SpawnExplosionEffects");
 
     // Magic chain
     Hooks::add(&TrPC_PlayerTick, "Function TribesGame.TrPlayerController.PlayerTick");
