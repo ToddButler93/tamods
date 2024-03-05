@@ -70,7 +70,7 @@ void TrDevice_FireAmmunition(ATrDevice* that, ATrDevice_execFireAmmunition_Parms
             if (!that->bInstantHit)
             {
                 
-                RealStartLoc = that->GetClientSideProjectileFireStartLoc(FVector());
+                RealStartLoc = that->eventGetMuzzleLoc();
                 SpawnRotation = that->GetAdjustedAim(RealStartLoc);
                 SpawnedProjectile = (ATrProjectile*)that->Spawn(ProjectileClass, that->Instigator, that->Name, RealStartLoc, FRotator(), NULL, 0);
                 if (SpawnedProjectile)
