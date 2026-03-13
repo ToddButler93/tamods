@@ -1,5 +1,7 @@
 #include "Mods.h"
 
+static void ClientLagCompensationSpawnFakeProjectileFromWeapon(ATrDevice* weapon);
+
 ////////////////////////
 // Nova Colt Ping Dependency
 ////////////////////////
@@ -45,6 +47,9 @@ void TrDevice_FireAmmunition(ATrDevice* that, ATrDevice_execFireAmmunition_Parms
             pc->OnKickback(that->Subtract_RotatorRotator(Geom::vectorToRotation(kbVec), pawn->eventGetViewRotation()), that->m_fKickbackBlendOutTime);
         }
     }
+
+	// Client side lag compensation (draw projectiles with zero ping)
+	ClientLagCompensationSpawnFakeProjectileFromWeapon(that);
 }
 
 ////////////////////////
@@ -311,4 +316,33 @@ void TrDevice_SniperRifle_ModifyInstantHitDamage(ATrDevice_SniperRifle* that, AT
     that->m_fAimChargeDeltaTime = 0.f;
 
     *result = that->ATrDevice::ModifyInstantHitDamage(params->FiringMode, params->Impact, damage);
+}
+
+static void ClientLagCompensationSpawnFakeProjectileFromWeapon(ATrDevice* weapon)
+{
+	// Client side lag compensation (draw projectiles with zero ping)
+	auto projectile_class{ weapon->GetProjectileClass() };
+	auto pawn{ reinterpret_cast<ATrPawn*>(weapon->Instigator) };
+	auto controller{ reinterpret_cast<ATrPlayerController *>(weapon->GetALocalPlayerController()) };
+	if (!weapon->bInstantHit && projectile_class && controller && pawn)
+	{
+		auto weapon_can_simulate_projectiles{ reinterpret_cast<ATrProjectile *>(projectile_class->Default)->m_bSimulateAutonomousProjectiles };
+
+		// Only continue if simulated projectiles is enabled
+		if (!weapon_can_simulate_projectiles && controller->m_bAllowSimulatedProjectiles)
+		{
+			//auto real_start_location{ weapon->GetClientSideProjectileFireStartLoc(FVector()) };
+			auto real_start_location{ weapon->GetPhysicalFireStartLoc(FVector()) };
+
+			auto direction{ weapon->GetRotatorAxis(weapon->GetAdjustedAim(real_start_location), 0) };
+			auto fake_projectile{ reinterpret_cast<ATrProjectile *>(weapon->Spawn(projectile_class, nullptr, weapon->Name,
+																				real_start_location, FRotator(), nullptr, false)) };
+
+			if (fake_projectile)
+			{
+				fake_projectile->InitProjectile(direction, nullptr);
+				fake_projectile->r_vSpawnLocation = real_start_location;
+			}
+		}
+	}
 }
