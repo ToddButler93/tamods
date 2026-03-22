@@ -71,6 +71,9 @@ void TrProjectile_PreBeginPlay_UScript(ATrProjectile *that, ATrProjectile_eventP
             g_projClass = NULL;
         }
     }
+
+    if (g_config.clientSideProjectiles) ClientLagCompenastionCheckTether(that);
+
     if (callInfo)
         that->eventPreBeginPlay();
 }
@@ -295,7 +298,7 @@ bool TrPC_PlayerTick(int ID, UObject *dwCallingObject, UFunction* pFunction, voi
 
                 if (delay < tmax)
                 {
-                    // d(x) = v0*x + (a/2)x²
+                    // d(x) = v0*x + (a/2)xï¿½
                     dist = v0 * delay + a * 0.5f * delay * delay;
                     speed = v0 + delay * a;
                 }
@@ -344,4 +347,46 @@ bool TrPC_PlayerTick(int ID, UObject *dwCallingObject, UFunction* pFunction, voi
 
     Hooks::unlock();
     return false;
+}
+
+static void ClientLagCompenastionCheckTether(ATrProjectile* projectile)
+{
+	auto controller{ reinterpret_cast<ATrPlayerController *>(projectile->GetALocalPlayerController()) };
+	auto weapon_can_simulate_projectiles{ reinterpret_cast<ATrProjectile *>(projectile->Class->Default)->m_bSimulateAutonomousProjectiles };
+
+	if (controller && (!weapon_can_simulate_projectiles && controller->m_bAllowSimulatedProjectiles))
+	{
+		static ATrProjectile* latest_fake_projectile{};
+		static APawn* instigator_of_latest_fake_projectile{};
+
+		// Client side lag compensation (draw projectiles with zero ping)
+		if (projectile->Instigator)
+		{
+			// Ignore fake projectile
+			latest_fake_projectile = projectile;
+			instigator_of_latest_fake_projectile = projectile->Instigator;
+		}
+		else
+		{
+			// Real projectile
+			// We want to assign (tether) a fake projectile to this real projectile
+			if (latest_fake_projectile && instigator_of_latest_fake_projectile == controller->Pawn && latest_fake_projectile->Class == projectile->Class)
+			{
+				float physDiff = Geom::vSize(Geom::sub(projectile->Location, latest_fake_projectile->r_vSpawnLocation));
+
+				// Seems to work enough
+				// Tested @15 - 100 ping
+				//        @30 - 150+ fps
+				if (physDiff < 1000)
+				{
+					latest_fake_projectile->c_ParentTetheredProjectile = projectile;
+					projectile->c_ChildTetheredProjectile = latest_fake_projectile;
+					projectile->SetHidden(true);
+					projectile->HideProjectile();
+					latest_fake_projectile = nullptr;
+					instigator_of_latest_fake_projectile = nullptr;
+				}
+			}
+		}
+	}
 }

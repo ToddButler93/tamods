@@ -67,6 +67,9 @@ void Config::reset()
     crosshairScale         = 1;
     crosshairColor         = Utils::rgb(255, 255, 255);
 
+    // LAG Compensation
+    clientSideProjectiles = false;
+
     // Damage number customization
     damageNumbersOffsetX = 0.0f;
     damageNumbersOffsetY = 0.0f;
@@ -519,6 +522,9 @@ void Config::setVariables()
     SET_VARIABLE(bool, showLaserCrosshair);
     SET_VARIABLE(float, crosshairScale);
     SET_VARIABLE(FColor, crosshairColor);
+
+    // LAG Compensation
+    SET_VARIABLE(bool, clientSideProjectiles);
 
     // Damage number customization
     SET_FUNCTION(onDamageNumberCreate);

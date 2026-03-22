@@ -19,6 +19,9 @@ bool TrPC_InitInputSystem(int id, UObject *dwCallingObject, UFunction* pFunction
 bool TrPC_PostBeginPlay(int id, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
 bool TrPC_Destroyed(int id, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
 
+static void ClientLagCompenastionCheckTether(ATrProjectile* projectile);
+static void ClientLagCompensationSpawnFakeProjectileFromWeapon(ATrDevice* weapon);
+
 // Damage numbers
 bool TrPC_ClientShowOverheadNumber(int id, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
 bool TrHudWrapper_destroyed(int ID, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
