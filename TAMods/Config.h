@@ -245,6 +245,9 @@ public:
     float   crosshairScale;
     FColor  crosshairColor;
 
+    // LAG Compensation
+    bool    clientSideProjectiles;
+
     // Damage number customization
     float  damageNumbersOffsetX;
     float  damageNumbersOffsetY;

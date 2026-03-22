@@ -19,6 +19,9 @@ bool TrPC_InitInputSystem(int id, UObject *dwCallingObject, UFunction* pFunction
 bool TrPC_PostBeginPlay(int id, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
 bool TrPC_Destroyed(int id, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
 
+static void ClientLagCompenastionCheckTether(ATrProjectile* projectile);
+static void ClientLagCompensationSpawnFakeProjectileFromWeapon(ATrDevice* weapon);
+
 // Damage numbers
 bool TrPC_ClientShowOverheadNumber(int id, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
 bool TrHudWrapper_destroyed(int ID, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
@@ -64,6 +67,10 @@ void TrDevice_Shotgun_AddSpreadWithAccuracy(ATrDevice_Shotgun* that, ATrDevice_S
 void CustomWeaponsTick(ATrDevice* currentDevice);
 void CustomWeaponsOnPlayerDeath(ATrPlayerController* pc);
 bool TrStationCollision_Touch(int ID, UObject *dwCallingObject, UFunction* pFunction, void* pParams, void* pResult);
+
+// Disapearing bullet fix - EmitterPool
+void UDKEmitterPool_SpawnEmitter(AUDKEmitterPool* that, AEmitterPool_execSpawnEmitter_Parms* params, UParticleSystemComponent** result, Hooks::CallInfo* callInfo);
+
 struct WeaponPositioningDetails {
     unsigned long IsHidden;
     unsigned char CurrentHand;
