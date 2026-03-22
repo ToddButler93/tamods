@@ -23,7 +23,7 @@ static UClass *g_projClass = NULL;
 
 // Disapearing bullet fix - EmitterPool
 void UDKEmitterPool_SpawnEmitter(AUDKEmitterPool* that, AEmitterPool_execSpawnEmitter_Parms* params, UParticleSystemComponent** result, Hooks::CallInfo* callInfo) {
-    that->MaxActiveEffects = 4000;
+    if (g_config.clientSideProjectiles) that->MaxActiveEffects = 4000;
     *result = params->ReturnValue = that->SpawnEmitter(params->EmitterTemplate, params->SpawnLocation, params->SpawnRotation, params->AttachToActor, params->bInheritScaleFromBase);
 }
 
