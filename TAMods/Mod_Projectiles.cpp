@@ -1,7 +1,5 @@
 #include "Mods.h"
 
-static void ClientLagCompenastionCheckTether(ATrProjectile* projectile);
-
 struct DelayedProjectile
 {
     ATrDevice *device;
@@ -74,7 +72,7 @@ void TrProjectile_PreBeginPlay_UScript(ATrProjectile *that, ATrProjectile_eventP
         }
     }
 
-	ClientLagCompenastionCheckTether(that);
+    if (g_config.clientSideProjectiles) ClientLagCompenastionCheckTether(that);
 
     if (callInfo)
         that->eventPreBeginPlay();

@@ -1,7 +1,5 @@
 #include "Mods.h"
 
-static void ClientLagCompensationSpawnFakeProjectileFromWeapon(ATrDevice* weapon);
-
 ////////////////////////
 // Nova Colt Ping Dependency
 ////////////////////////
@@ -49,7 +47,7 @@ void TrDevice_FireAmmunition(ATrDevice* that, ATrDevice_execFireAmmunition_Parms
     }
 
 	// Client side lag compensation (draw projectiles with zero ping)
-	ClientLagCompensationSpawnFakeProjectileFromWeapon(that);
+    if(g_config.clientSideProjectiles) ClientLagCompensationSpawnFakeProjectileFromWeapon(that);
 }
 
 ////////////////////////
